@@ -15,6 +15,9 @@ namespace ReportSync
 {
     public partial class ReportSync : Form
     {
+        const string ROOT_FOLDER = "/";
+        const string PATH_SEPERATOR = "/";
+
         ReportingService2005 sourceRS;
         ReportingService2005 destRS;
 
@@ -46,7 +49,7 @@ namespace ReportSync
                 }
             
                 rptSourceTree.Nodes.Clear();
-                loadTreeNode("/", rptSourceTree.Nodes, sourceRS);
+                loadTreeNode(ROOT_FOLDER, rptSourceTree.Nodes, sourceRS);
             }
             catch(Exception ex)
             {
@@ -76,7 +79,7 @@ namespace ReportSync
             try
             {
                 rptDestTree.Nodes.Clear();
-                loadTreeNode("/", rptDestTree.Nodes, destRS);
+                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS);
             }
             catch (Exception ex)
             {
@@ -158,7 +161,7 @@ namespace ReportSync
                     }
                     else
                     {
-                        var reportDef = sourceRS.GetReportDefinition("/" + node.FullPath.Replace("\\", "/"));
+                        var reportDef = sourceRS.GetReportDefinition(ROOT_FOLDER + node.FullPath.Replace("\\", "/"));
                         XmlDocument rdl = new XmlDocument();
                         rdl.Load(new MemoryStream(reportDef));
                         rdl.Save(destPath+ ".rdl");
@@ -172,13 +175,13 @@ namespace ReportSync
         {
             try
             {
-                var destPath = "/";
+                var destPath = ROOT_FOLDER;
                 if(!String.IsNullOrEmpty(txtDest.Text))
                     destPath = txtDest.Text;
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 syncTreeNodes(destPath, rptSourceTree.Nodes);
                 rptDestTree.Nodes.Clear();
-                loadTreeNode("/", rptDestTree.Nodes, destRS);
+                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS);
             }
             catch (Exception ex)
             {
@@ -195,12 +198,17 @@ namespace ReportSync
                     if (node.Nodes.Count > 0)
                     {
                         destRS.CreateFolder(node.Text, destPath, null);
-                        syncTreeNodes(destPath + "/" + node.Text, node.Nodes);
+                        var childPath = destPath;
+                        if (destPath.Equals(ROOT_FOLDER))
+                            childPath = ROOT_FOLDER + node.Text;
+                        else
+                            childPath = destPath + PATH_SEPERATOR + node.Text;
+                        syncTreeNodes(childPath, node.Nodes);
                     }
                     else
                     {
 
-                        var sourcePath = "/" + node.FullPath.Replace("\\", "/");
+                        var sourcePath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
                         var reportDef = sourceRS.GetReportDefinition(sourcePath);
                         var reportDss = sourceRS.GetItemDataSources(sourcePath);
                         foreach (var reportDs in reportDss)
@@ -233,7 +241,7 @@ namespace ReportSync
 
         private void rptDestTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            txtDest.Text = "/" + e.Node.FullPath.Replace("\\", "/");
+            txtDest.Text = ROOT_FOLDER + e.Node.FullPath.Replace("\\", PATH_SEPERATOR);
         }
     }
 }
