@@ -41,7 +41,22 @@ namespace ReportSync
 
                 if (!String.IsNullOrEmpty(txtSourceUser.Text))
                 {
-                    sourceRS.Credentials = new System.Net.NetworkCredential(txtSourceUser.Text, txtSourcePassword.Text);
+                    var userName = txtSourceUser.Text;
+                    var nameParts = userName.Split('\\', '/');
+                    if(nameParts.Length > 2)
+                    {
+                        MessageBox.Show("Incorrect source user name", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    else if (nameParts.Length == 2)
+                    {
+                        userName = nameParts[1];
+                        sourceRS.Credentials = new System.Net.NetworkCredential(userName, txtSourcePassword.Text, nameParts[0]);
+                    }
+                    else
+                    {
+                        sourceRS.Credentials = new System.Net.NetworkCredential(userName, txtSourcePassword.Text);
+                    }                    
                 }
                 else
                 {
@@ -70,7 +85,22 @@ namespace ReportSync
 
             if (!String.IsNullOrEmpty(txtDestUser.Text))
             {
-                destRS.Credentials = new System.Net.NetworkCredential(txtDestUser.Text, txtDestPassword.Text);
+                var userName = txtDestUser.Text;
+                var nameParts = userName.Split('\\', '/');
+                if (nameParts.Length > 2)
+                {
+                    MessageBox.Show("Incorrect destination user name","Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                else if (nameParts.Length == 2)
+                {
+                    userName = nameParts[1];
+                    destRS.Credentials = new System.Net.NetworkCredential(userName, txtDestPassword.Text, nameParts[0]);
+                }
+                else
+                {
+                    destRS.Credentials = new System.Net.NetworkCredential(userName, txtDestPassword.Text);
+                }             
             }
             else
             {
