@@ -21,6 +21,10 @@ namespace ReportSync
         ReportingService2005 sourceRS;
         ReportingService2005 destRS;
 
+        Dictionary<string, string> sourceDS;
+        Dictionary<string, string> destDS;
+
+
         public ReportSync()
         {
             InitializeComponent();
@@ -64,7 +68,8 @@ namespace ReportSync
                 }
             
                 rptSourceTree.Nodes.Clear();
-                loadTreeNode(ROOT_FOLDER, rptSourceTree.Nodes, sourceRS);
+                sourceDS = new Dictionary<string, string>();
+                loadTreeNode(ROOT_FOLDER, rptSourceTree.Nodes, sourceRS, sourceDS);
             }
             catch(Exception ex)
             {
@@ -109,7 +114,8 @@ namespace ReportSync
             try
             {
                 rptDestTree.Nodes.Clear();
-                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS);
+                destDS = new Dictionary<string, string>();
+                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
             }
             catch (Exception ex)
             {
@@ -117,7 +123,7 @@ namespace ReportSync
             }
         }
 
-        private void loadTreeNode(string path, TreeNodeCollection nodes, ReportingService2005 rs)
+        private void loadTreeNode(string path, TreeNodeCollection nodes, ReportingService2005 rs, Dictionary<string, string> dataSources)
         {
             CatalogItem[] items = rs.ListChildren(path, false);
             foreach (var item in items)
@@ -125,15 +131,16 @@ namespace ReportSync
                 TreeNode t = new TreeNode();
                 t.Text = item.Name;
                 if (item.Type == ItemTypeEnum.DataSource)
-                { 
-                    //rs.getD
+                {
+                    if(!dataSources.ContainsKey(item.Name))
+                        dataSources.Add(item.Name, item.Path);
                 }
                 if (item.Type != ItemTypeEnum.Model && item.Type != ItemTypeEnum.DataSource)
                 {    
                     nodes.Add(t);
                 }
                 if (item.Type == ItemTypeEnum.Folder)
-                    loadTreeNode(item.Path, t.Nodes, rs);
+                    loadTreeNode(item.Path, t.Nodes, rs, dataSources);
                 else
                 {
                     
@@ -211,7 +218,8 @@ namespace ReportSync
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 syncTreeNodes(destPath, rptSourceTree.Nodes);
                 rptDestTree.Nodes.Clear();
-                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS);
+                destDS = new Dictionary<string, string>();
+                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
             }
             catch (Exception ex)
             {
@@ -241,20 +249,27 @@ namespace ReportSync
                         var sourcePath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
                         var reportDef = sourceRS.GetReportDefinition(sourcePath);
                         var reportDss = sourceRS.GetItemDataSources(sourcePath);
+                        List<DataSource> dataSources = new List<DataSource>();
                         foreach (var reportDs in reportDss)
                         {
-                            //ds.Name
+                            
+                            if(destDS.ContainsKey(reportDs.Name))
+                            {
+                                DataSourceReference reference = new DataSourceReference();
+                                reference.Reference = destDS[reportDs.Name];
+                                var ds = new DataSource();
+                                ds.Item = (DataSourceDefinitionOrReference)reference;
+                                ds.Name = reportDs.Name;
+                                dataSources.Add(ds);
+                            }
                         }
                         destRS.CreateReport(node.Text, destPath, true, reportDef, null);
-                        //set the datasource
-                        //DataSourceReference reference = new DataSourceReference();//creates new instance from DataSourceReference 
-                        //reference.Reference = "/ds";
-                        //DataSource[] dataSources = new DataSource[1];
-                        //DataSource ds = new DataSource();
-                        //ds.Item = (DataSourceDefinitionOrReference)reference;
-                        //ds.Name = "ds";
-                        //dataSources[0] = ds;
-                        //destRS.SetItemDataSources(destPath, dataSources);
+                        var reportPath = destPath;
+                        if(reportPath.EndsWith("/"))
+                            reportPath += node.Text;
+                        else
+                            reportPath += "/" + node.Text;
+                        destRS.SetItemDataSources(reportPath, dataSources.ToArray());
                     }
                 }
             }
