@@ -36,7 +36,7 @@
             this.rptSourceTree = new System.Windows.Forms.TreeView();
             this.btnDownload = new System.Windows.Forms.Button();
             this.dlgDest = new System.Windows.Forms.FolderBrowserDialog();
-            this.txtDest = new System.Windows.Forms.TextBox();
+            this.txtLocalPath = new System.Windows.Forms.TextBox();
             this.btnDest = new System.Windows.Forms.Button();
             this.txtDestUrl = new System.Windows.Forms.TextBox();
             this.txtDestUser = new System.Windows.Forms.TextBox();
@@ -53,6 +53,7 @@
             this.lblSrcUrl = new System.Windows.Forms.Label();
             this.grpDest = new System.Windows.Forms.GroupBox();
             this.lblDest = new System.Windows.Forms.Label();
+            this.btnUpload = new System.Windows.Forms.Button();
             this.grpSource.SuspendLayout();
             this.grpDest.SuspendLayout();
             this.SuspendLayout();
@@ -100,24 +101,24 @@
             // 
             // btnDownload
             // 
-            this.btnDownload.Location = new System.Drawing.Point(323, 458);
+            this.btnDownload.Location = new System.Drawing.Point(305, 458);
             this.btnDownload.Name = "btnDownload";
-            this.btnDownload.Size = new System.Drawing.Size(75, 20);
+            this.btnDownload.Size = new System.Drawing.Size(65, 20);
             this.btnDownload.TabIndex = 6;
             this.btnDownload.Text = "Download";
             this.btnDownload.UseVisualStyleBackColor = true;
             this.btnDownload.Click += new System.EventHandler(this.btnDownload_Click);
             // 
-            // txtDest
+            // txtLocalPath
             // 
-            this.txtDest.Location = new System.Drawing.Point(90, 458);
-            this.txtDest.Name = "txtDest";
-            this.txtDest.Size = new System.Drawing.Size(197, 20);
-            this.txtDest.TabIndex = 7;
+            this.txtLocalPath.Location = new System.Drawing.Point(66, 458);
+            this.txtLocalPath.Name = "txtLocalPath";
+            this.txtLocalPath.Size = new System.Drawing.Size(197, 20);
+            this.txtLocalPath.TabIndex = 7;
             // 
             // btnDest
             // 
-            this.btnDest.Location = new System.Drawing.Point(293, 458);
+            this.btnDest.Location = new System.Drawing.Point(272, 458);
             this.btnDest.Name = "btnDest";
             this.btnDest.Size = new System.Drawing.Size(24, 20);
             this.btnDest.TabIndex = 8;
@@ -169,9 +170,9 @@
             // 
             // btnSync
             // 
-            this.btnSync.Location = new System.Drawing.Point(403, 458);
+            this.btnSync.Location = new System.Drawing.Point(437, 458);
             this.btnSync.Name = "btnSync";
-            this.btnSync.Size = new System.Drawing.Size(75, 20);
+            this.btnSync.Size = new System.Drawing.Size(41, 20);
             this.btnSync.TabIndex = 14;
             this.btnSync.Text = "Sync";
             this.btnSync.UseVisualStyleBackColor = true;
@@ -270,21 +271,32 @@
             this.lblDest.AutoSize = true;
             this.lblDest.Location = new System.Drawing.Point(5, 461);
             this.lblDest.Name = "lblDest";
-            this.lblDest.Size = new System.Drawing.Size(84, 13);
+            this.lblDest.Size = new System.Drawing.Size(57, 13);
             this.lblDest.TabIndex = 21;
-            this.lblDest.Text = "Destination path";
+            this.lblDest.Text = "Local path";
+            // 
+            // btnUpload
+            // 
+            this.btnUpload.Location = new System.Drawing.Point(376, 458);
+            this.btnUpload.Name = "btnUpload";
+            this.btnUpload.Size = new System.Drawing.Size(55, 20);
+            this.btnUpload.TabIndex = 22;
+            this.btnUpload.Text = "Upload";
+            this.btnUpload.UseVisualStyleBackColor = true;
+            this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
             // 
             // ReportSync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(480, 483);
+            this.Controls.Add(this.btnUpload);
             this.Controls.Add(this.lblDest);
             this.Controls.Add(this.grpDest);
             this.Controls.Add(this.grpSource);
             this.Controls.Add(this.btnSync);
             this.Controls.Add(this.btnDest);
-            this.Controls.Add(this.txtDest);
+            this.Controls.Add(this.txtLocalPath);
             this.Controls.Add(this.btnDownload);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ReportSync";
@@ -307,7 +319,7 @@
         private System.Windows.Forms.TreeView rptSourceTree;
         private System.Windows.Forms.Button btnDownload;
         private System.Windows.Forms.FolderBrowserDialog dlgDest;
-        private System.Windows.Forms.TextBox txtDest;
+        private System.Windows.Forms.TextBox txtLocalPath;
         private System.Windows.Forms.Button btnDest;
         private System.Windows.Forms.TextBox txtDestUrl;
         private System.Windows.Forms.TextBox txtDestUser;
@@ -324,6 +336,7 @@
         private System.Windows.Forms.Label lblDest;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btnUpload;
     }
 }
 

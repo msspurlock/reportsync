@@ -24,6 +24,8 @@ namespace ReportSync
         Dictionary<string, string> sourceDS;
         Dictionary<string, string> destDS;
 
+        string uploadPath = ROOT_FOLDER;
+
 
         public ReportSync()
         {
@@ -186,7 +188,7 @@ namespace ReportSync
         {
             foreach (TreeNode node in nodes)
             {
-                var destPath = txtDest.Text + "\\" + node.FullPath;
+                var destPath = txtLocalPath.Text + "\\" + node.FullPath;
                 if (node.Checked)
                 {
                     if (node.Nodes.Count > 0)
@@ -213,8 +215,8 @@ namespace ReportSync
             try
             {
                 var destPath = ROOT_FOLDER;
-                if(!String.IsNullOrEmpty(txtDest.Text))
-                    destPath = txtDest.Text;
+                if(!String.IsNullOrEmpty(txtLocalPath.Text))
+                    destPath = txtLocalPath.Text;
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 syncTreeNodes(destPath, rptSourceTree.Nodes);
                 rptDestTree.Nodes.Clear();
@@ -245,34 +247,41 @@ namespace ReportSync
                     }
                     else
                     {
-
                         var sourcePath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
                         var reportDef = sourceRS.GetReportDefinition(sourcePath);
-                        var reportDss = sourceRS.GetItemDataSources(sourcePath);
-                        List<DataSource> dataSources = new List<DataSource>();
-                        foreach (var reportDs in reportDss)
-                        {
-                            
-                            if(destDS.ContainsKey(reportDs.Name))
-                            {
-                                DataSourceReference reference = new DataSourceReference();
-                                reference.Reference = destDS[reportDs.Name];
-                                var ds = new DataSource();
-                                ds.Item = (DataSourceDefinitionOrReference)reference;
-                                ds.Name = reportDs.Name;
-                                dataSources.Add(ds);
-                            }
-                        }
-                        destRS.CreateReport(node.Text, destPath, true, reportDef, null);
-                        var reportPath = destPath;
-                        if(reportPath.EndsWith("/"))
-                            reportPath += node.Text;
-                        else
-                            reportPath += "/" + node.Text;
-                        destRS.SetItemDataSources(reportPath, dataSources.ToArray());
+                        uploadReport(destPath, node.Text, reportDef);
                     }
                 }
             }
+        }
+
+        private void uploadReport(string destinationPath, string reportName, byte[] reportDef)
+        {
+            //Create report
+            destRS.CreateReport(reportName, destinationPath, true, reportDef, null);
+
+            //Link datasources
+            var reportPath = destinationPath;
+            if (reportPath.EndsWith("/"))
+                reportPath += reportName;
+            else
+                reportPath += "/" + reportName;
+            var reportDss = destRS.GetItemDataSources(reportPath);
+            List<DataSource> dataSources = new List<DataSource>();
+            foreach (var reportDs in reportDss)
+            {
+
+                if (destDS.ContainsKey(reportDs.Name))
+                {
+                    DataSourceReference reference = new DataSourceReference();
+                    reference.Reference = destDS[reportDs.Name];
+                    var ds = new DataSource();
+                    ds.Item = (DataSourceDefinitionOrReference)reference;
+                    ds.Name = reportDs.Name;
+                    dataSources.Add(ds);
+                }
+            }
+            destRS.SetItemDataSources(reportPath, dataSources.ToArray());
         }
 
         private void btnDest_Click(object sender, EventArgs e)
@@ -280,13 +289,34 @@ namespace ReportSync
             DialogResult result = dlgDest.ShowDialog();
             if (result == DialogResult.OK)
             {
-                txtDest.Text = dlgDest.SelectedPath;
+                txtLocalPath.Text = dlgDest.SelectedPath;
             }
         }
 
         private void rptDestTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            txtDest.Text = ROOT_FOLDER + e.Node.FullPath.Replace("\\", PATH_SEPERATOR);
+            uploadPath = ROOT_FOLDER + e.Node.FullPath.Replace("\\", PATH_SEPERATOR);
+        }
+
+        private void btnUpload_Click(object sender, EventArgs e)
+        {
+            var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                var fullPath = file.Replace(txtLocalPath.Text, "");
+                int breakAt = fullPath.LastIndexOf('\\');
+                var filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
+                var fileName = fullPath.Substring(breakAt+1, fullPath.Length - 4); //remove the .rdl
+                var reportPath = uploadPath;
+                if (!reportPath.EndsWith("/"))
+                    reportPath += filePath;
+                else
+                    reportPath += "/" + filePath;
+                XmlDocument report = new XmlDocument();
+                report.Load(file);
+                var reportDef = Encoding.Default.GetBytes(report.OuterXml);
+                uploadReport(reportPath, fileName, reportDef);
+            }
         }
     }
 }
