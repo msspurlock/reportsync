@@ -115,9 +115,7 @@ namespace ReportSync
             }
             try
             {
-                rptDestTree.Nodes.Clear();
-                destDS = new Dictionary<string, string>();
-                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
+                loadDestTree();
             }
             catch (Exception ex)
             {
@@ -210,6 +208,13 @@ namespace ReportSync
             }
         }
 
+        private void loadDestTree()
+        {
+            rptDestTree.Nodes.Clear();
+            destDS = new Dictionary<string, string>();
+            loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
+        }
+
         private void btnSync_Click(object sender, EventArgs e)
         {
             try
@@ -219,9 +224,8 @@ namespace ReportSync
                     destPath = txtLocalPath.Text;
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 syncTreeNodes(destPath, rptSourceTree.Nodes);
-                rptDestTree.Nodes.Clear();
-                destDS = new Dictionary<string, string>();
-                loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
+                loadDestTree();
+                MessageBox.Show("Sync completed successfully.", "Sync complete");
             }
             catch (Exception ex)
             {
@@ -257,31 +261,38 @@ namespace ReportSync
 
         private void uploadReport(string destinationPath, string reportName, byte[] reportDef)
         {
-            //Create report
-            destRS.CreateReport(reportName, destinationPath, true, reportDef, null);
-
-            //Link datasources
-            var reportPath = destinationPath;
-            if (reportPath.EndsWith("/"))
-                reportPath += reportName;
-            else
-                reportPath += "/" + reportName;
-            var reportDss = destRS.GetItemDataSources(reportPath);
-            List<DataSource> dataSources = new List<DataSource>();
-            foreach (var reportDs in reportDss)
+            try
             {
+                //Create report
+                destRS.CreateReport(reportName, destinationPath, true, reportDef, null);
 
-                if (destDS.ContainsKey(reportDs.Name))
+                //Link datasources
+                var reportPath = destinationPath;
+                if (reportPath.EndsWith("/"))
+                    reportPath += reportName;
+                else
+                    reportPath += "/" + reportName;
+                var reportDss = destRS.GetItemDataSources(reportPath);
+                List<DataSource> dataSources = new List<DataSource>();
+                foreach (var reportDs in reportDss)
                 {
-                    DataSourceReference reference = new DataSourceReference();
-                    reference.Reference = destDS[reportDs.Name];
-                    var ds = new DataSource();
-                    ds.Item = (DataSourceDefinitionOrReference)reference;
-                    ds.Name = reportDs.Name;
-                    dataSources.Add(ds);
+
+                    if (destDS.ContainsKey(reportDs.Name))
+                    {
+                        DataSourceReference reference = new DataSourceReference();
+                        reference.Reference = destDS[reportDs.Name];
+                        var ds = new DataSource();
+                        ds.Item = (DataSourceDefinitionOrReference)reference;
+                        ds.Name = reportDs.Name;
+                        dataSources.Add(ds);
+                    }
                 }
+                destRS.SetItemDataSources(reportPath, dataSources.ToArray());
             }
-            destRS.SetItemDataSources(reportPath, dataSources.ToArray());
+            catch (Exception e)
+            {
+                MessageBox.Show("Upload failed." + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnDest_Click(object sender, EventArgs e)
@@ -298,25 +309,52 @@ namespace ReportSync
             uploadPath = ROOT_FOLDER + e.Node.FullPath.Replace("\\", PATH_SEPERATOR);
         }
 
+        private void EnsureDestDir(string path)
+        { 
+            try
+            {
+                destRS.ListChildren(path, false);
+            }
+            catch (Exception)
+            { 
+                //ensure parent folder
+                var breatAt = path.LastIndexOf(PATH_SEPERATOR);
+                var folder = path.Substring(breatAt + 1);
+                var parent = path.Substring(0, breatAt);
+                if (String.IsNullOrEmpty(parent))
+                    parent = ROOT_FOLDER;
+                EnsureDestDir(parent);
+                destRS.CreateFolder(folder,parent, null);
+            }
+        }
+
         private void btnUpload_Click(object sender, EventArgs e)
         {
+            List<string> existingPaths = new List<string>();
             var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
             foreach (var file in files)
             {
                 var fullPath = file.Replace(txtLocalPath.Text, "");
                 int breakAt = fullPath.LastIndexOf('\\');
                 var filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
-                var fileName = fullPath.Substring(breakAt+1, fullPath.Length - 4); //remove the .rdl
+                var fileName = fullPath.Substring(breakAt + 1, fullPath.Length - 5 - breakAt); //remove the .rdl
                 var reportPath = uploadPath;
-                if (!reportPath.EndsWith("/"))
-                    reportPath += filePath;
+                if (reportPath.EndsWith(PATH_SEPERATOR))
+                    reportPath += filePath.TrimStart('/');
                 else
-                    reportPath += "/" + filePath;
+                    reportPath += "/" + filePath.TrimStart('/');
                 XmlDocument report = new XmlDocument();
                 report.Load(file);
                 var reportDef = Encoding.Default.GetBytes(report.OuterXml);
+                if (!existingPaths.Contains(reportPath))
+                {
+                    EnsureDestDir(reportPath);
+                    existingPaths.Add(reportPath);
+                }
                 uploadReport(reportPath, fileName, reportDef);
             }
+            loadDestTree();
+            MessageBox.Show("Upload completed successfully.", "Upload complete");
         }
     }
 }
