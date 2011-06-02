@@ -104,7 +104,7 @@
             this.btnDownload.Location = new System.Drawing.Point(305, 458);
             this.btnDownload.Name = "btnDownload";
             this.btnDownload.Size = new System.Drawing.Size(65, 20);
-            this.btnDownload.TabIndex = 6;
+            this.btnDownload.TabIndex = 7;
             this.btnDownload.Text = "Download";
             this.btnDownload.UseVisualStyleBackColor = true;
             this.btnDownload.Click += new System.EventHandler(this.btnDownload_Click);
@@ -114,14 +114,14 @@
             this.txtLocalPath.Location = new System.Drawing.Point(66, 458);
             this.txtLocalPath.Name = "txtLocalPath";
             this.txtLocalPath.Size = new System.Drawing.Size(197, 20);
-            this.txtLocalPath.TabIndex = 7;
+            this.txtLocalPath.TabIndex = 5;
             // 
             // btnDest
             // 
             this.btnDest.Location = new System.Drawing.Point(272, 458);
             this.btnDest.Name = "btnDest";
             this.btnDest.Size = new System.Drawing.Size(24, 20);
-            this.btnDest.TabIndex = 8;
+            this.btnDest.TabIndex = 6;
             this.btnDest.Text = "...";
             this.btnDest.UseVisualStyleBackColor = true;
             this.btnDest.Click += new System.EventHandler(this.btnDest_Click);
@@ -131,14 +131,14 @@
             this.txtDestUrl.Location = new System.Drawing.Point(27, 16);
             this.txtDestUrl.Name = "txtDestUrl";
             this.txtDestUrl.Size = new System.Drawing.Size(205, 20);
-            this.txtDestUrl.TabIndex = 9;
+            this.txtDestUrl.TabIndex = 8;
             // 
             // txtDestUser
             // 
             this.txtDestUser.Location = new System.Drawing.Point(65, 42);
             this.txtDestUser.Name = "txtDestUser";
             this.txtDestUser.Size = new System.Drawing.Size(100, 20);
-            this.txtDestUser.TabIndex = 10;
+            this.txtDestUser.TabIndex = 9;
             this.txtDestUser.Text = "Administrator";
             // 
             // txtDestPassword
@@ -147,14 +147,14 @@
             this.txtDestPassword.Name = "txtDestPassword";
             this.txtDestPassword.PasswordChar = '*';
             this.txtDestPassword.Size = new System.Drawing.Size(100, 20);
-            this.txtDestPassword.TabIndex = 11;
+            this.txtDestPassword.TabIndex = 10;
             // 
             // btnDestLoad
             // 
             this.btnDestLoad.Location = new System.Drawing.Point(175, 67);
             this.btnDestLoad.Name = "btnDestLoad";
             this.btnDestLoad.Size = new System.Drawing.Size(57, 20);
-            this.btnDestLoad.TabIndex = 12;
+            this.btnDestLoad.TabIndex = 11;
             this.btnDestLoad.Text = "Load";
             this.btnDestLoad.UseVisualStyleBackColor = true;
             this.btnDestLoad.Click += new System.EventHandler(this.btnDestLoad_Click);
@@ -173,7 +173,7 @@
             this.btnSync.Location = new System.Drawing.Point(437, 458);
             this.btnSync.Name = "btnSync";
             this.btnSync.Size = new System.Drawing.Size(41, 20);
-            this.btnSync.TabIndex = 7;
+            this.btnSync.TabIndex = 13;
             this.btnSync.Text = "Sync";
             this.btnSync.UseVisualStyleBackColor = true;
             this.btnSync.Click += new System.EventHandler(this.btnSync_Click);
@@ -280,7 +280,7 @@
             this.btnUpload.Location = new System.Drawing.Point(376, 458);
             this.btnUpload.Name = "btnUpload";
             this.btnUpload.Size = new System.Drawing.Size(55, 20);
-            this.btnUpload.TabIndex = 6;
+            this.btnUpload.TabIndex = 12;
             this.btnUpload.Text = "Upload";
             this.btnUpload.UseVisualStyleBackColor = true;
             this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
