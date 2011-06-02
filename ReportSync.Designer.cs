@@ -70,7 +70,7 @@
             this.btnSourceLoad.Location = new System.Drawing.Point(170, 67);
             this.btnSourceLoad.Name = "btnSourceLoad";
             this.btnSourceLoad.Size = new System.Drawing.Size(55, 21);
-            this.btnSourceLoad.TabIndex = 2;
+            this.btnSourceLoad.TabIndex = 4;
             this.btnSourceLoad.Text = "Load";
             this.btnSourceLoad.UseVisualStyleBackColor = true;
             this.btnSourceLoad.Click += new System.EventHandler(this.btnLoad_Click);
@@ -80,7 +80,7 @@
             this.txtSourceUser.Location = new System.Drawing.Point(64, 41);
             this.txtSourceUser.Name = "txtSourceUser";
             this.txtSourceUser.Size = new System.Drawing.Size(100, 20);
-            this.txtSourceUser.TabIndex = 3;
+            this.txtSourceUser.TabIndex = 2;
             this.txtSourceUser.Text = "Administrator";
             // 
             // txtSourcePassword
@@ -89,7 +89,7 @@
             this.txtSourcePassword.Name = "txtSourcePassword";
             this.txtSourcePassword.PasswordChar = '*';
             this.txtSourcePassword.Size = new System.Drawing.Size(100, 20);
-            this.txtSourcePassword.TabIndex = 4;
+            this.txtSourcePassword.TabIndex = 3;
             // 
             // rptSourceTree
             // 
@@ -173,7 +173,7 @@
             this.btnSync.Location = new System.Drawing.Point(437, 458);
             this.btnSync.Name = "btnSync";
             this.btnSync.Size = new System.Drawing.Size(41, 20);
-            this.btnSync.TabIndex = 14;
+            this.btnSync.TabIndex = 7;
             this.btnSync.Text = "Sync";
             this.btnSync.UseVisualStyleBackColor = true;
             this.btnSync.Click += new System.EventHandler(this.btnSync_Click);
@@ -280,7 +280,7 @@
             this.btnUpload.Location = new System.Drawing.Point(376, 458);
             this.btnUpload.Name = "btnUpload";
             this.btnUpload.Size = new System.Drawing.Size(55, 20);
-            this.btnUpload.TabIndex = 22;
+            this.btnUpload.TabIndex = 6;
             this.btnUpload.Text = "Upload";
             this.btnUpload.UseVisualStyleBackColor = true;
             this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
