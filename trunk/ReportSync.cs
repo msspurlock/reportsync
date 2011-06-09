@@ -291,7 +291,7 @@ namespace ReportSync
             }
             catch (Exception e)
             {
-                MessageBox.Show("Upload failed." + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Upload "+ reportName + " failed." + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -334,9 +334,13 @@ namespace ReportSync
             var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                var fullPath = file.Replace(txtLocalPath.Text, "");
+                var fullPath = file.Replace(txtLocalPath.Text, "").TrimStart('\\');
                 int breakAt = fullPath.LastIndexOf('\\');
-                var filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
+                string filePath;
+                if (breakAt == -1)
+                    filePath = fullPath;
+                else
+                    filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
                 var fileName = fullPath.Substring(breakAt + 1, fullPath.Length - 5 - breakAt); //remove the .rdl
                 var reportPath = uploadPath;
                 if (reportPath.EndsWith(PATH_SEPERATOR))
