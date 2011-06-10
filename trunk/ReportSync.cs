@@ -338,7 +338,7 @@ namespace ReportSync
                 int breakAt = fullPath.LastIndexOf('\\');
                 string filePath;
                 if (breakAt == -1)
-                    filePath = fullPath;
+                    filePath = String.Empty;
                 else
                     filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
                 var fileName = fullPath.Substring(breakAt + 1, fullPath.Length - 5 - breakAt); //remove the .rdl
@@ -347,6 +347,7 @@ namespace ReportSync
                     reportPath += filePath.TrimStart('/');
                 else
                     reportPath += "/" + filePath.TrimStart('/');
+                reportPath = reportPath.TrimEnd('/');
                 XmlDocument report = new XmlDocument();
                 report.Load(file);
                 var reportDef = Encoding.Default.GetBytes(report.OuterXml);
