@@ -25,7 +25,7 @@ namespace ReportSync
         Dictionary<string, string> destDS;
 
         string uploadPath = ROOT_FOLDER;
-
+        List<string> existingPaths;
 
         public ReportSync()
         {
@@ -154,6 +154,7 @@ namespace ReportSync
             {
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 saveTreeNodes(rptSourceTree.Nodes);
+                unCheckTreeNodes(rptSourceTree.Nodes);
                 MessageBox.Show("Report files downloaded successfully.","Download complete");
             }
             catch (Exception ex)
@@ -176,10 +177,23 @@ namespace ReportSync
                 else
                 {
                     node.Checked = checkTreeNodes(node.Nodes, false);
+                    node.Tag = true;
                     isChecked = isChecked || node.Checked;
                 }
             }
             return isChecked;
+        }
+
+        private void unCheckTreeNodes(TreeNodeCollection nodes)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Checked && node.Tag != null)
+                {
+                    node.Checked = false;
+                }
+                unCheckTreeNodes(node.Nodes);
+            }
         }
 
         private void saveTreeNodes(TreeNodeCollection nodes)
@@ -210,6 +224,7 @@ namespace ReportSync
 
         private void loadDestTree()
         {
+            uploadPath = ROOT_FOLDER;
             rptDestTree.Nodes.Clear();
             destDS = new Dictionary<string, string>();
             loadTreeNode(ROOT_FOLDER, rptDestTree.Nodes, destRS, destDS);
@@ -220,10 +235,12 @@ namespace ReportSync
             try
             {
                 var destPath = ROOT_FOLDER;
-                if(!String.IsNullOrEmpty(txtLocalPath.Text))
-                    destPath = txtLocalPath.Text;
+                if (!String.IsNullOrEmpty(uploadPath))
+                    destPath = uploadPath;
                 checkTreeNodes(rptSourceTree.Nodes, false);
+                existingPaths = new List<string>();
                 syncTreeNodes(destPath, rptSourceTree.Nodes);
+                unCheckTreeNodes(rptSourceTree.Nodes);
                 loadDestTree();
                 MessageBox.Show("Sync completed successfully.", "Sync complete");
             }
@@ -241,7 +258,6 @@ namespace ReportSync
                 {
                     if (node.Nodes.Count > 0)
                     {
-                        destRS.CreateFolder(node.Text, destPath, null);
                         var childPath = destPath;
                         if (destPath.Equals(ROOT_FOLDER))
                             childPath = ROOT_FOLDER + node.Text;
@@ -253,6 +269,11 @@ namespace ReportSync
                     {
                         var sourcePath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
                         var reportDef = sourceRS.GetReportDefinition(sourcePath);
+                        if (!existingPaths.Contains(destPath))
+                        {
+                            EnsureDestDir(destPath);
+                            existingPaths.Add(destPath);
+                        }
                         uploadReport(destPath, node.Text, reportDef);
                     }
                 }
@@ -330,7 +351,7 @@ namespace ReportSync
 
         private void btnUpload_Click(object sender, EventArgs e)
         {
-            List<string> existingPaths = new List<string>();
+            existingPaths = new List<string>();
             var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
             foreach (var file in files)
             {
