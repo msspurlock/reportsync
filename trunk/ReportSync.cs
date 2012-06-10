@@ -212,7 +212,17 @@ namespace ReportSync
                     }
                     else
                     {
-                        var reportDef = sourceRS.GetReportDefinition(ROOT_FOLDER + node.FullPath.Replace("\\", "/"));
+                        var itemPath = ROOT_FOLDER + node.FullPath.Replace("\\", "/");
+                        var itemType = sourceRS.GetItemType(itemPath);
+                        if (itemType == ItemTypeEnum.Resource)
+                        {
+                            //Download the resource
+                            string resourceType;
+                            var contents = sourceRS.GetResourceContents(itemPath, out resourceType);
+                            File.WriteAllBytes(destPath, contents);
+                            continue;
+                        }
+                        var reportDef = sourceRS.GetReportDefinition(itemPath);
                         XmlDocument rdl = new XmlDocument();
                         rdl.Load(new MemoryStream(reportDef));
                         rdl.Save(destPath+ ".rdl");
