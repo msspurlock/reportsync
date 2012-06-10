@@ -392,5 +392,14 @@ namespace ReportSync
             loadDestTree();
             MessageBox.Show("Upload completed successfully.", "Upload complete");
         }
+
+        private void ReportSync_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (!chkSaveSource.Checked)
+                Properties.Settings.Default.SourcePassword = "";
+            if (!chkSaveDest.Checked)
+                Properties.Settings.Default.DestPassword = "";
+            Properties.Settings.Default.Save();
+        }
     }
 }
