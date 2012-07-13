@@ -10,6 +10,7 @@ using ReportSync.ReportService;
 using System.Xml;
 using System.IO;
 using System.Web;
+using System.Threading;
 
 namespace ReportSync
 {
@@ -27,9 +28,68 @@ namespace ReportSync
         string uploadPath = ROOT_FOLDER;
         List<string> existingPaths;
 
+        int selectedNodeCount;
+
+        int processedNodeCount;
+
         public ReportSync()
         {
             InitializeComponent();
+            bwDownload.DoWork += new DoWorkEventHandler(bwDownload_DoWork);
+            bwDownload.ProgressChanged += new ProgressChangedEventHandler(bwDownload_ProgressChanged);
+            bwDownload.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwDownload_RunWorkerCompleted);
+
+            bwUpload.DoWork += new DoWorkEventHandler(bwUpload_DoWork);
+            bwUpload.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwUpload_RunWorkerCompleted);
+
+            bwSync.DoWork += new DoWorkEventHandler(bwSync_DoWork);
+            bwSync.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwSync_RunWorkerCompleted);
+        }
+
+        void bwDownload_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbSource.Value = e.ProgressPercentage;
+        }
+
+        void bwSync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void bwSync_DoWork(object sender, DoWorkEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void bwUpload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void bwUpload_DoWork(object sender, DoWorkEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        void bwDownload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            unCheckTreeNodes(rptSourceTree.Nodes);
+            MessageBox.Show("Report files downloaded successfully.", "Download complete");
+
+        }
+
+        void bwDownload_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                processedNodeCount = 0;
+                saveTreeNodes(rptSourceTree.Nodes);
+                
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Download failed." + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnLoad_Click(object sender, EventArgs e)
@@ -150,17 +210,9 @@ namespace ReportSync
 
         private void btnDownload_Click(object sender, EventArgs e)
         {
-            try
-            {
-                checkTreeNodes(rptSourceTree.Nodes, false);
-                saveTreeNodes(rptSourceTree.Nodes);
-                unCheckTreeNodes(rptSourceTree.Nodes);
-                MessageBox.Show("Report files downloaded successfully.","Download complete");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Download failed." + ex.Message,"Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
-            }
+            selectedNodeCount = 0;
+            checkTreeNodes(rptSourceTree.Nodes, false);
+            bwDownload.RunWorkerAsync();
         }
 
         private bool checkTreeNodes(TreeNodeCollection nodes, bool parentChecked)
@@ -173,6 +225,7 @@ namespace ReportSync
                     checkTreeNodes(node.Nodes, true);
                     node.Checked = true;
                     isChecked = true;
+                    selectedNodeCount++;
                 }
                 else
                 {
@@ -226,7 +279,10 @@ namespace ReportSync
                         XmlDocument rdl = new XmlDocument();
                         rdl.Load(new MemoryStream(reportDef));
                         rdl.Save(destPath+ ".rdl");
+                        Thread.Sleep(100);
                     }
+                    processedNodeCount++;
+                    bwDownload.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
                 }
                 
             }
