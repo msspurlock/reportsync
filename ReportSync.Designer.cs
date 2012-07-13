@@ -41,21 +41,26 @@
             this.lblDestUser = new System.Windows.Forms.Label();
             this.lblDestUrl = new System.Windows.Forms.Label();
             this.grpSource = new System.Windows.Forms.GroupBox();
+            this.pbSource = new System.Windows.Forms.ProgressBar();
             this.chkSaveSource = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.lblSrcUrl = new System.Windows.Forms.Label();
-            this.grpDest = new System.Windows.Forms.GroupBox();
-            this.chkSaveDest = new System.Windows.Forms.CheckBox();
-            this.lblDest = new System.Windows.Forms.Label();
-            this.btnUpload = new System.Windows.Forms.Button();
-            this.txtDestUrl = new System.Windows.Forms.TextBox();
-            this.txtDestUser = new System.Windows.Forms.TextBox();
-            this.txtDestPassword = new System.Windows.Forms.TextBox();
             this.txtSourceUrl = new System.Windows.Forms.TextBox();
             this.txtSourceUser = new System.Windows.Forms.TextBox();
             this.txtSourcePassword = new System.Windows.Forms.TextBox();
+            this.grpDest = new System.Windows.Forms.GroupBox();
+            this.pbDest = new System.Windows.Forms.ProgressBar();
+            this.chkSaveDest = new System.Windows.Forms.CheckBox();
+            this.txtDestUrl = new System.Windows.Forms.TextBox();
+            this.txtDestUser = new System.Windows.Forms.TextBox();
+            this.txtDestPassword = new System.Windows.Forms.TextBox();
+            this.lblDest = new System.Windows.Forms.Label();
+            this.btnUpload = new System.Windows.Forms.Button();
             this.txtLocalPath = new System.Windows.Forms.TextBox();
+            this.bwDownload = new System.ComponentModel.BackgroundWorker();
+            this.bwUpload = new System.ComponentModel.BackgroundWorker();
+            this.bwSync = new System.ComponentModel.BackgroundWorker();
             this.grpSource.SuspendLayout();
             this.grpDest.SuspendLayout();
             this.SuspendLayout();
@@ -80,9 +85,9 @@
             // 
             // btnDownload
             // 
-            this.btnDownload.Location = new System.Drawing.Point(305, 458);
+            this.btnDownload.Location = new System.Drawing.Point(305, 492);
             this.btnDownload.Name = "btnDownload";
-            this.btnDownload.Size = new System.Drawing.Size(65, 20);
+            this.btnDownload.Size = new System.Drawing.Size(65, 21);
             this.btnDownload.TabIndex = 7;
             this.btnDownload.Text = "Download";
             this.btnDownload.UseVisualStyleBackColor = true;
@@ -90,9 +95,9 @@
             // 
             // btnDest
             // 
-            this.btnDest.Location = new System.Drawing.Point(272, 458);
+            this.btnDest.Location = new System.Drawing.Point(272, 492);
             this.btnDest.Name = "btnDest";
-            this.btnDest.Size = new System.Drawing.Size(24, 20);
+            this.btnDest.Size = new System.Drawing.Size(24, 21);
             this.btnDest.TabIndex = 6;
             this.btnDest.Text = "...";
             this.btnDest.UseVisualStyleBackColor = true;
@@ -119,9 +124,9 @@
             // 
             // btnSync
             // 
-            this.btnSync.Location = new System.Drawing.Point(437, 458);
+            this.btnSync.Location = new System.Drawing.Point(437, 492);
             this.btnSync.Name = "btnSync";
-            this.btnSync.Size = new System.Drawing.Size(41, 20);
+            this.btnSync.Size = new System.Drawing.Size(41, 21);
             this.btnSync.TabIndex = 13;
             this.btnSync.Text = "Sync";
             this.btnSync.UseVisualStyleBackColor = true;
@@ -156,6 +161,7 @@
             // 
             // grpSource
             // 
+            this.grpSource.Controls.Add(this.pbSource);
             this.grpSource.Controls.Add(this.chkSaveSource);
             this.grpSource.Controls.Add(this.label2);
             this.grpSource.Controls.Add(this.label1);
@@ -167,10 +173,18 @@
             this.grpSource.Controls.Add(this.btnSourceLoad);
             this.grpSource.Location = new System.Drawing.Point(2, 6);
             this.grpSource.Name = "grpSource";
-            this.grpSource.Size = new System.Drawing.Size(232, 446);
+            this.grpSource.Size = new System.Drawing.Size(232, 476);
             this.grpSource.TabIndex = 19;
             this.grpSource.TabStop = false;
             this.grpSource.Text = "Source SSRS web service";
+            // 
+            // pbSource
+            // 
+            this.pbSource.Location = new System.Drawing.Point(6, 447);
+            this.pbSource.Name = "pbSource";
+            this.pbSource.Size = new System.Drawing.Size(219, 23);
+            this.pbSource.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.pbSource.TabIndex = 22;
             // 
             // chkSaveSource
             // 
@@ -211,8 +225,37 @@
             this.lblSrcUrl.TabIndex = 19;
             this.lblSrcUrl.Text = "Url";
             // 
+            // txtSourceUrl
+            // 
+            this.txtSourceUrl.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourceUrl", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.txtSourceUrl.Location = new System.Drawing.Point(32, 16);
+            this.txtSourceUrl.Name = "txtSourceUrl";
+            this.txtSourceUrl.Size = new System.Drawing.Size(193, 20);
+            this.txtSourceUrl.TabIndex = 1;
+            this.txtSourceUrl.Text = global::ReportSync.Properties.Settings.Default.SourceUrl;
+            // 
+            // txtSourceUser
+            // 
+            this.txtSourceUser.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourceUser", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.txtSourceUser.Location = new System.Drawing.Point(64, 41);
+            this.txtSourceUser.Name = "txtSourceUser";
+            this.txtSourceUser.Size = new System.Drawing.Size(100, 20);
+            this.txtSourceUser.TabIndex = 2;
+            this.txtSourceUser.Text = global::ReportSync.Properties.Settings.Default.SourceUser;
+            // 
+            // txtSourcePassword
+            // 
+            this.txtSourcePassword.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourcePassword", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.txtSourcePassword.Location = new System.Drawing.Point(64, 67);
+            this.txtSourcePassword.Name = "txtSourcePassword";
+            this.txtSourcePassword.PasswordChar = '*';
+            this.txtSourcePassword.Size = new System.Drawing.Size(100, 20);
+            this.txtSourcePassword.TabIndex = 3;
+            this.txtSourcePassword.Text = global::ReportSync.Properties.Settings.Default.SourcePassword;
+            // 
             // grpDest
             // 
+            this.grpDest.Controls.Add(this.pbDest);
             this.grpDest.Controls.Add(this.chkSaveDest);
             this.grpDest.Controls.Add(this.lblDestUrl);
             this.grpDest.Controls.Add(this.txtDestUrl);
@@ -224,10 +267,17 @@
             this.grpDest.Controls.Add(this.rptDestTree);
             this.grpDest.Location = new System.Drawing.Point(240, 6);
             this.grpDest.Name = "grpDest";
-            this.grpDest.Size = new System.Drawing.Size(238, 446);
+            this.grpDest.Size = new System.Drawing.Size(238, 476);
             this.grpDest.TabIndex = 20;
             this.grpDest.TabStop = false;
             this.grpDest.Text = "Destination SSRS web service";
+            // 
+            // pbDest
+            // 
+            this.pbDest.Location = new System.Drawing.Point(6, 447);
+            this.pbDest.Name = "pbDest";
+            this.pbDest.Size = new System.Drawing.Size(226, 23);
+            this.pbDest.TabIndex = 23;
             // 
             // chkSaveDest
             // 
@@ -240,25 +290,6 @@
             this.chkSaveDest.TabIndex = 22;
             this.chkSaveDest.Text = "Save";
             this.chkSaveDest.UseVisualStyleBackColor = true;
-            // 
-            // lblDest
-            // 
-            this.lblDest.AutoSize = true;
-            this.lblDest.Location = new System.Drawing.Point(5, 461);
-            this.lblDest.Name = "lblDest";
-            this.lblDest.Size = new System.Drawing.Size(57, 13);
-            this.lblDest.TabIndex = 21;
-            this.lblDest.Text = "Local path";
-            // 
-            // btnUpload
-            // 
-            this.btnUpload.Location = new System.Drawing.Point(376, 458);
-            this.btnUpload.Name = "btnUpload";
-            this.btnUpload.Size = new System.Drawing.Size(55, 20);
-            this.btnUpload.TabIndex = 12;
-            this.btnUpload.Text = "Upload";
-            this.btnUpload.UseVisualStyleBackColor = true;
-            this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
             // 
             // txtDestUrl
             // 
@@ -288,48 +319,51 @@
             this.txtDestPassword.TabIndex = 10;
             this.txtDestPassword.Text = global::ReportSync.Properties.Settings.Default.DestPassword;
             // 
-            // txtSourceUrl
+            // lblDest
             // 
-            this.txtSourceUrl.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourceUrl", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.txtSourceUrl.Location = new System.Drawing.Point(32, 16);
-            this.txtSourceUrl.Name = "txtSourceUrl";
-            this.txtSourceUrl.Size = new System.Drawing.Size(193, 20);
-            this.txtSourceUrl.TabIndex = 1;
-            this.txtSourceUrl.Text = global::ReportSync.Properties.Settings.Default.SourceUrl;
+            this.lblDest.AutoSize = true;
+            this.lblDest.Location = new System.Drawing.Point(5, 495);
+            this.lblDest.Name = "lblDest";
+            this.lblDest.Size = new System.Drawing.Size(57, 13);
+            this.lblDest.TabIndex = 21;
+            this.lblDest.Text = "Local path";
             // 
-            // txtSourceUser
+            // btnUpload
             // 
-            this.txtSourceUser.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourceUser", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.txtSourceUser.Location = new System.Drawing.Point(64, 41);
-            this.txtSourceUser.Name = "txtSourceUser";
-            this.txtSourceUser.Size = new System.Drawing.Size(100, 20);
-            this.txtSourceUser.TabIndex = 2;
-            this.txtSourceUser.Text = global::ReportSync.Properties.Settings.Default.SourceUser;
-            // 
-            // txtSourcePassword
-            // 
-            this.txtSourcePassword.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "SourcePassword", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.txtSourcePassword.Location = new System.Drawing.Point(64, 67);
-            this.txtSourcePassword.Name = "txtSourcePassword";
-            this.txtSourcePassword.PasswordChar = '*';
-            this.txtSourcePassword.Size = new System.Drawing.Size(100, 20);
-            this.txtSourcePassword.TabIndex = 3;
-            this.txtSourcePassword.Text = global::ReportSync.Properties.Settings.Default.SourcePassword;
+            this.btnUpload.Location = new System.Drawing.Point(376, 492);
+            this.btnUpload.Name = "btnUpload";
+            this.btnUpload.Size = new System.Drawing.Size(55, 21);
+            this.btnUpload.TabIndex = 12;
+            this.btnUpload.Text = "Upload";
+            this.btnUpload.UseVisualStyleBackColor = true;
+            this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
             // 
             // txtLocalPath
             // 
             this.txtLocalPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::ReportSync.Properties.Settings.Default, "LocalPath", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.txtLocalPath.Location = new System.Drawing.Point(66, 458);
+            this.txtLocalPath.Location = new System.Drawing.Point(66, 492);
             this.txtLocalPath.Name = "txtLocalPath";
             this.txtLocalPath.Size = new System.Drawing.Size(197, 20);
             this.txtLocalPath.TabIndex = 5;
             this.txtLocalPath.Text = global::ReportSync.Properties.Settings.Default.LocalPath;
             // 
+            // bwDownload
+            // 
+            this.bwDownload.WorkerReportsProgress = true;
+            // 
+            // bwUpload
+            // 
+            this.bwUpload.WorkerReportsProgress = true;
+            // 
+            // bwSync
+            // 
+            this.bwSync.WorkerReportsProgress = true;
+            // 
             // ReportSync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(480, 483);
+            this.ClientSize = new System.Drawing.Size(480, 518);
             this.Controls.Add(this.btnUpload);
             this.Controls.Add(this.lblDest);
             this.Controls.Add(this.grpDest);
@@ -380,6 +414,11 @@
         private System.Windows.Forms.Button btnUpload;
         private System.Windows.Forms.CheckBox chkSaveSource;
         private System.Windows.Forms.CheckBox chkSaveDest;
+        private System.Windows.Forms.ProgressBar pbSource;
+        private System.Windows.Forms.ProgressBar pbDest;
+        private System.ComponentModel.BackgroundWorker bwDownload;
+        private System.ComponentModel.BackgroundWorker bwUpload;
+        private System.ComponentModel.BackgroundWorker bwSync;
     }
 }
 
