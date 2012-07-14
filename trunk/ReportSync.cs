@@ -40,9 +40,11 @@ namespace ReportSync
             bwDownload.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwDownload_RunWorkerCompleted);
 
             bwUpload.DoWork += new DoWorkEventHandler(bwUpload_DoWork);
+            bwUpload.ProgressChanged +=new ProgressChangedEventHandler(bwUpload_ProgressChanged);
             bwUpload.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwUpload_RunWorkerCompleted);
 
             bwSync.DoWork += new DoWorkEventHandler(bwSync_DoWork);
+            bwSync.ProgressChanged +=new ProgressChangedEventHandler(bwSync_ProgressChanged);
             bwSync.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bwSync_RunWorkerCompleted);
         }
 
@@ -51,24 +53,73 @@ namespace ReportSync
             pbSource.Value = e.ProgressPercentage;
         }
 
+        void bwUpload_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbDest.Value = e.ProgressPercentage;
+        }
+
+        void bwSync_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbSource.Value = e.ProgressPercentage;
+            pbDest.Value = e.ProgressPercentage;
+        }
+
         void bwSync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            unCheckTreeNodes(rptSourceTree.Nodes);
+            loadDestTree();
+            MessageBox.Show("Sync completed successfully.", "Sync complete");
         }
 
         void bwSync_DoWork(object sender, DoWorkEventArgs e)
         {
-            throw new NotImplementedException();
+            var destPath = ROOT_FOLDER;
+            if (!String.IsNullOrEmpty(uploadPath))
+                destPath = uploadPath;
+            syncTreeNodes(destPath, rptSourceTree.Nodes);
+            bwSync.ReportProgress(100);
         }
 
         void bwUpload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            throw new NotImplementedException();
+            loadDestTree();
+            MessageBox.Show("Upload completed successfully.", "Upload complete");
         }
 
         void bwUpload_DoWork(object sender, DoWorkEventArgs e)
         {
-            throw new NotImplementedException();
+            var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
+            selectedNodeCount = files.Length;
+            processedNodeCount = 0;
+            foreach (var file in files)
+            {
+                var fullPath = file.Replace(txtLocalPath.Text, "").TrimStart('\\');
+                int breakAt = fullPath.LastIndexOf('\\');
+                string filePath;
+                if (breakAt == -1)
+                    filePath = String.Empty;
+                else
+                    filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
+                var fileName = fullPath.Substring(breakAt + 1, fullPath.Length - 5 - breakAt); //remove the .rdl
+                var reportPath = uploadPath;
+                if (reportPath.EndsWith(PATH_SEPERATOR))
+                    reportPath += filePath.TrimStart('/');
+                else
+                    reportPath += "/" + filePath.TrimStart('/');
+                reportPath = reportPath.TrimEnd('/');
+                XmlDocument report = new XmlDocument();
+                report.Load(file);
+                var reportDef = Encoding.Default.GetBytes(report.OuterXml);
+                if (!existingPaths.Contains(reportPath))
+                {
+                    EnsureDestDir(reportPath);
+                    existingPaths.Add(reportPath);
+                }
+                uploadReport(reportPath, fileName, reportDef);
+                processedNodeCount++;
+                bwUpload.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
+            }
+            bwUpload.ReportProgress(100);
         }
 
         void bwDownload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -84,7 +135,7 @@ namespace ReportSync
             {
                 processedNodeCount = 0;
                 saveTreeNodes(rptSourceTree.Nodes);
-                
+                bwDownload.ReportProgress(100);
             }
             catch (Exception ex)
             {
@@ -279,7 +330,6 @@ namespace ReportSync
                         XmlDocument rdl = new XmlDocument();
                         rdl.Load(new MemoryStream(reportDef));
                         rdl.Save(destPath+ ".rdl");
-                        Thread.Sleep(100);
                     }
                     processedNodeCount++;
                     bwDownload.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
@@ -300,15 +350,10 @@ namespace ReportSync
         {
             try
             {
-                var destPath = ROOT_FOLDER;
-                if (!String.IsNullOrEmpty(uploadPath))
-                    destPath = uploadPath;
+                selectedNodeCount = 0;
                 checkTreeNodes(rptSourceTree.Nodes, false);
                 existingPaths = new List<string>();
-                syncTreeNodes(destPath, rptSourceTree.Nodes);
-                unCheckTreeNodes(rptSourceTree.Nodes);
-                loadDestTree();
-                MessageBox.Show("Sync completed successfully.", "Sync complete");
+                bwSync.RunWorkerAsync();
             }
             catch (Exception ex)
             {
@@ -333,17 +378,33 @@ namespace ReportSync
                     }
                     else
                     {
-                        var sourcePath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
-                        var reportDef = sourceRS.GetReportDefinition(sourcePath);
                         if (!existingPaths.Contains(destPath))
                         {
                             EnsureDestDir(destPath);
                             existingPaths.Add(destPath);
                         }
+                        var itemPath = ROOT_FOLDER + node.FullPath.Replace("\\", PATH_SEPERATOR);
+                        var itemType = sourceRS.GetItemType(itemPath);
+                        if (itemType == ItemTypeEnum.Resource)
+                        {
+                            //Download the resource
+                            string resourceType;
+                            var contents = sourceRS.GetResourceContents(itemPath, out resourceType);
+                            uploadResource(destPath, node.Text, resourceType, contents);
+                            continue;
+                        }
+                        var reportDef = sourceRS.GetReportDefinition(itemPath);
                         uploadReport(destPath, node.Text, reportDef);
                     }
+                    processedNodeCount++;
+                    bwSync.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
                 }
             }
+        }
+
+        private void uploadResource(string destinationPath, string resourceName, string resourceType, byte[] contents)
+        {
+            destRS.CreateResource(resourceName, destinationPath, true, contents, resourceType, null);
         }
 
         private void uploadReport(string destinationPath, string reportName, byte[] reportDef)
@@ -418,35 +479,12 @@ namespace ReportSync
         private void btnUpload_Click(object sender, EventArgs e)
         {
             existingPaths = new List<string>();
-            var files = Directory.GetFiles(txtLocalPath.Text, "*.rdl", SearchOption.AllDirectories);
-            foreach (var file in files)
+            if (String.IsNullOrEmpty(txtLocalPath.Text))
             {
-                var fullPath = file.Replace(txtLocalPath.Text, "").TrimStart('\\');
-                int breakAt = fullPath.LastIndexOf('\\');
-                string filePath;
-                if (breakAt == -1)
-                    filePath = String.Empty;
-                else
-                    filePath = fullPath.Substring(0, breakAt).Replace("\\", PATH_SEPERATOR); ;
-                var fileName = fullPath.Substring(breakAt + 1, fullPath.Length - 5 - breakAt); //remove the .rdl
-                var reportPath = uploadPath;
-                if (reportPath.EndsWith(PATH_SEPERATOR))
-                    reportPath += filePath.TrimStart('/');
-                else
-                    reportPath += "/" + filePath.TrimStart('/');
-                reportPath = reportPath.TrimEnd('/');
-                XmlDocument report = new XmlDocument();
-                report.Load(file);
-                var reportDef = Encoding.Default.GetBytes(report.OuterXml);
-                if (!existingPaths.Contains(reportPath))
-                {
-                    EnsureDestDir(reportPath);
-                    existingPaths.Add(reportPath);
-                }
-                uploadReport(reportPath, fileName, reportDef);
+                MessageBox.Show("Please select the folder to upload.");
+                return;
             }
-            loadDestTree();
-            MessageBox.Show("Upload completed successfully.", "Upload complete");
+            bwUpload.RunWorkerAsync();
         }
 
         private void ReportSync_FormClosed(object sender, FormClosedEventArgs e)
