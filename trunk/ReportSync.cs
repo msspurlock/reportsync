@@ -73,6 +73,7 @@ namespace ReportSync
 
         void bwSync_DoWork(object sender, DoWorkEventArgs e)
         {
+            processedNodeCount = 0;
             var destPath = ROOT_FOLDER;
             if (!String.IsNullOrEmpty(uploadPath))
                 destPath = uploadPath;
@@ -391,6 +392,7 @@ namespace ReportSync
                             string resourceType;
                             var contents = sourceRS.GetResourceContents(itemPath, out resourceType);
                             uploadResource(destPath, node.Text, resourceType, contents);
+                            processedNodeCount++;
                             continue;
                         }
                         var reportDef = sourceRS.GetReportDefinition(itemPath);
