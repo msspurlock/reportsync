@@ -276,14 +276,14 @@ namespace ReportSync
                 {
                     checkTreeNodes(node.Nodes, true);
                     node.Checked = true;
+                    node.Tag = true;
                     isChecked = true;
                     selectedNodeCount++;
                 }
                 else
                 {
-                    node.Checked = checkTreeNodes(node.Nodes, false);
-                    node.Tag = true;
-                    isChecked = isChecked || node.Checked;
+                    node.Tag = checkTreeNodes(node.Nodes, false);
+                    isChecked = isChecked || (bool)node.Tag;
                 }
             }
             return isChecked;
@@ -293,9 +293,9 @@ namespace ReportSync
         {
             foreach (TreeNode node in nodes)
             {
-                if (node.Checked && node.Tag != null)
+                if (node.Tag != null)
                 {
-                    node.Checked = false;
+                    node.Tag = null;
                 }
                 unCheckTreeNodes(node.Nodes);
             }
@@ -366,15 +366,18 @@ namespace ReportSync
         {
             foreach (TreeNode node in nodes)
             {
-                if (node.Checked)
+                if ((bool)node.Tag)
                 {
                     if (node.Nodes.Count > 0)
                     {
                         var childPath = destPath;
-                        if (destPath.Equals(ROOT_FOLDER))
-                            childPath = ROOT_FOLDER + node.Text;
-                        else
-                            childPath = destPath + PATH_SEPERATOR + node.Text;
+                        if (node.Checked)
+                        {
+                            if (destPath.Equals(ROOT_FOLDER))
+                                childPath = ROOT_FOLDER + node.Text;
+                            else
+                                childPath = destPath + PATH_SEPERATOR + node.Text;
+                        }
                         syncTreeNodes(childPath, node.Nodes);
                     }
                     else
@@ -397,9 +400,43 @@ namespace ReportSync
                         }
                         var reportDef = sourceRS.GetReportDefinition(itemPath);
                         uploadReport(destPath, node.Text, reportDef);
-                    }
-                    processedNodeCount++;
-                    bwSync.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
+
+                        //Sync subscriptions
+                        ExtensionSettings extSettings;
+                        string desc;
+                        ActiveState active;
+                        string status;
+                        string eventType;
+                        string matchData;
+                        ParameterValue[] values = null;
+                        Subscription[] subscriptions = null;
+                        ParameterValueOrFieldReference[] extensionParams = null;
+
+                        var destReportPath = destPath;
+                        if (destReportPath.EndsWith("/"))
+                            destReportPath += node.Text;
+                        else
+                            destReportPath += "/" + node.Text;
+
+                        subscriptions = sourceRS.ListSubscriptions(itemPath, txtSourceUser.Text);
+                        foreach (var subscription in subscriptions)
+                        {
+                            sourceRS.GetSubscriptionProperties(subscription.SubscriptionID, out extSettings, out desc, out active, out status, out eventType, out matchData, out values);
+                            if (extSettings.Extension == "Report Server FileShare")
+                            {
+                                ParameterValue para = new ParameterValue();
+                                para.Name = "PASSWORD";
+                                para.Value = txtDestPassword.Text;
+                                ParameterValueOrFieldReference[] exParams = new ParameterValueOrFieldReference[extSettings.ParameterValues.Length + 1];
+                                Array.Copy(extSettings.ParameterValues, exParams, extSettings.ParameterValues.Length);
+                                exParams[extSettings.ParameterValues.Length] = para;
+                                extSettings.ParameterValues = exParams;
+                            }
+                            destRS.CreateSubscription(destReportPath, extSettings, desc, eventType, matchData, values);
+                        }
+                        processedNodeCount++;
+                        bwSync.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
+                    }                    
                 }
             }
         }
