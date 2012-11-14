@@ -11,6 +11,7 @@ using System.Xml;
 using System.IO;
 using System.Web;
 using System.Threading;
+using System.Diagnostics;
 
 namespace ReportSync
 {
@@ -19,11 +20,17 @@ namespace ReportSync
         const string ROOT_FOLDER = "/";
         const string PATH_SEPERATOR = "/";
 
+        const string SOURCE_SELECTION_START = "ReportSyncSource:";
+
+        const string DEST_SELECTION_START = "ReportSyncDest:";
+
         ReportingService2005 sourceRS;
         ReportingService2005 destRS;
 
         Dictionary<string, string> sourceDS;
         Dictionary<string, string> destDS;
+
+        string pathOnDisk;
 
         string uploadPath = ROOT_FOLDER;
         List<string> existingPaths;
@@ -242,6 +249,7 @@ namespace ReportSync
             {
                 TreeNode t = new TreeNode();
                 t.Text = item.Name;
+                t.Name = item.Name;
                 if (item.Type == ItemTypeEnum.DataSource)
                 {
                     if(!dataSources.ContainsKey(item.Name))
@@ -434,6 +442,7 @@ namespace ReportSync
                             }
                             destRS.CreateSubscription(destReportPath, extSettings, desc, eventType, matchData, values);
                         }
+
                         processedNodeCount++;
                         bwSync.ReportProgress(processedNodeCount * 100 / selectedNodeCount);
                     }                    
@@ -533,6 +542,131 @@ namespace ReportSync
             if (!chkSaveDest.Checked)
                 Properties.Settings.Default.DestPassword = "";
             Properties.Settings.Default.Save();
+        }
+
+        private void aboutReportSyncToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var frmAbout = new AboutReportSync();
+            frmAbout.Show();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void mapDataSourcesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var frmMapDS = new MapDatasources();
+            frmMapDS.sourceDS = sourceDS;
+            frmMapDS.destDS = destDS;
+            var result = frmMapDS.ShowDialog();
+            if (result == DialogResult.OK)
+            { 
+                
+            }
+        }
+
+        private void contentsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(@"http://code.google.com/p/reportsync/wiki/");
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var res = dlgOpenFile.ShowDialog();
+            if (res == DialogResult.OK)
+            {
+                var data = File.ReadAllLines(dlgOpenFile.FileName);
+                bool checkSourceNodes = false, checkDestNodes = false;
+                foreach (var line in data)
+                {
+                    if (line == SOURCE_SELECTION_START)
+                    {
+                        checkSourceNodes = true;
+                        continue;
+                    }
+                    else if (line == DEST_SELECTION_START)
+                    {
+                        checkDestNodes = true;
+                        checkSourceNodes = false;
+                        continue;
+                    }
+                    if (checkSourceNodes)
+                    {
+                        checkNodeIfPathExists(rptSourceTree.Nodes, line);
+                    }
+                    if (checkDestNodes)
+                    {
+                        checkNodeIfPathExists(rptDestTree.Nodes, line);
+                    }
+                }
+            }
+        }
+
+        void checkNodeIfPathExists(TreeNodeCollection nodes, string path)
+        {
+            var parts = path.Split(new char[]{'\\'}, 2);
+            var key = parts[0];
+            if (nodes.ContainsKey(key))
+            {
+                if (parts.Length == 1)
+                    nodes[key].Checked = true;
+                else
+                {
+                    nodes[key].Expand();
+                    checkNodeIfPathExists(nodes[key].Nodes, parts[1]);
+                }
+            }
+        }
+
+        private string saveCheckedNodes(TreeNodeCollection nodes)
+        {
+            var data = "";
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Checked)
+                    data += node.FullPath + Environment.NewLine;
+                data += saveCheckedNodes(node.Nodes);
+            }
+            return data;
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetPathAndSave();
+        }
+
+        void SetPathAndSave()
+        {
+            var res = dlgSaveFile.ShowDialog();
+            if (res == DialogResult.OK)
+            {
+                pathOnDisk = dlgSaveFile.FileName;
+                SaveSelectedNodesToDisk();
+            }
+        }
+
+        void SaveSelectedNodesToDisk()
+        {
+            if (!String.IsNullOrEmpty(pathOnDisk))
+            {
+                // save tree to disk
+                string data = SOURCE_SELECTION_START + Environment.NewLine;
+                data += saveCheckedNodes(rptSourceTree.Nodes);
+                data += DEST_SELECTION_START + Environment.NewLine;
+                data += saveCheckedNodes(rptDestTree.Nodes);
+                File.WriteAllText(pathOnDisk, data);
+            }
+            else
+            {
+                SetPathAndSave();
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveSelectedNodesToDisk();
         }
     }
 }
