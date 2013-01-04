@@ -335,10 +335,13 @@ namespace ReportSync
                             File.WriteAllBytes(destPath, contents);
                             continue;
                         }
-                        var reportDef = sourceRS.GetReportDefinition(itemPath);
-                        XmlDocument rdl = new XmlDocument();
-                        rdl.Load(new MemoryStream(reportDef));
-                        rdl.Save(destPath+ ".rdl");
+                        else if (itemType == ItemTypeEnum.Report || itemType == ItemTypeEnum.LinkedReport)
+                        {
+                            var reportDef = sourceRS.GetReportDefinition(itemPath);
+                            XmlDocument rdl = new XmlDocument();
+                            rdl.Load(new MemoryStream(reportDef));
+                            rdl.Save(destPath + ".rdl");
+                        }
                     }
                     processedNodeCount++;
                     bwDownload.ReportProgress(processedNodeCount * 100 / selectedNodeCount);

@@ -17,7 +17,12 @@ namespace ReportSync
             this.labelProductName.Text = AssemblyProduct;
             this.labelVersion.Text = String.Format("Version {0} ", AssemblyVersion);
             this.labelCompanyName.Text = "Author: nunespascal";
-            this.txtDescription.Text = AssemblyDescription;
+            this.txtDescription.Text = @"sync SSRS report between two report servers
+
+    Download rdls from SSRS to local PC
+    Upload files to a SSRS server
+    Attach datasources automatically on upload(Data source name given in the report must exist or be configured)
+    Attach subscriptions for the current user ";
         }
 
         #region Assembly Attribute Accessors

@@ -107,7 +107,7 @@
             this.labelCompanyName.Name = "labelCompanyName";
             this.labelCompanyName.Size = new System.Drawing.Size(235, 17);
             this.labelCompanyName.TabIndex = 22;
-            this.labelCompanyName.Text = "Company Name";
+            this.labelCompanyName.Text = "Author";
             this.labelCompanyName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // txtDescription
@@ -122,7 +122,6 @@
             this.txtDescription.Size = new System.Drawing.Size(235, 92);
             this.txtDescription.TabIndex = 23;
             this.txtDescription.TabStop = false;
-            this.txtDescription.Text = "Description";
             // 
             // okButton
             // 
