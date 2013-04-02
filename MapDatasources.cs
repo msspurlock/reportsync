@@ -46,12 +46,15 @@ namespace ReportSync
             int i=0;
             foreach (var entry in sourceDS)
             {
-                var destPath = dataSourcesGrid["Destination", i].Value.ToString();
+                if (dataSourcesGrid["Destination", i].Value != null)
+                {
+                    var destPath = dataSourcesGrid["Destination", i].Value.ToString();
 
-                if(destDS.ContainsKey(entry.Key))
-                    destDS[entry.Key] = destPath;
-                else
-                    destDS.Add(entry.Key, destPath);
+                    if (destDS.ContainsKey(entry.Key))
+                        destDS[entry.Key] = destPath;
+                    else
+                        destDS.Add(entry.Key, destPath);
+                }
                 i++;
             }
             DialogResult = DialogResult.OK;
