@@ -17,11 +17,13 @@ namespace ReportSync
             this.labelProductName.Text = AssemblyProduct;
             this.labelVersion.Text = String.Format("Version {0} ", AssemblyVersion);
             this.labelCompanyName.Text = "Author: nunespascal";
-            this.txtDescription.Text = @"sync SSRS report between two report servers
+            this.txtDescription.Text = @"Sync SSRS report between two report servers
 
     Download rdls from SSRS to local PC
     Upload files to a SSRS server
-    Attach datasources automatically on upload(Data source name given in the report must exist or be configured)
+    Attach datasources automatically on upload
+    - Data source path given in the report must exist
+    - If not, you can map to an existing datasource
     Attach subscriptions for the current user ";
         }
 
