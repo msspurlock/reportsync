@@ -24,6 +24,8 @@ namespace ReportSync
 
         const string DEST_SELECTION_START = "ReportSyncDest:";
 
+        const string MAPPING_START = "ReportSyncMap:";
+
         ReportingService2005 sourceRS;
         ReportingService2005 destRS;
 
@@ -564,10 +566,6 @@ namespace ReportSync
             frmMapDS.sourceDS = sourceDS;
             frmMapDS.destDS = destDS;
             var result = frmMapDS.ShowDialog();
-            if (result == DialogResult.OK)
-            { 
-                
-            }
         }
 
         private void contentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -581,27 +579,37 @@ namespace ReportSync
             if (res == DialogResult.OK)
             {
                 var data = File.ReadAllLines(dlgOpenFile.FileName);
-                bool checkSourceNodes = false, checkDestNodes = false;
+                int stage = 0;
                 foreach (var line in data)
                 {
                     if (line == SOURCE_SELECTION_START)
                     {
-                        checkSourceNodes = true;
+                        stage = 1;
                         continue;
                     }
                     else if (line == DEST_SELECTION_START)
                     {
-                        checkDestNodes = true;
-                        checkSourceNodes = false;
+                        stage = 2;
                         continue;
                     }
-                    if (checkSourceNodes)
+                    else if (line == MAPPING_START)
                     {
-                        checkNodeIfPathExists(rptSourceTree.Nodes, line);
+                        stage = 3;
+                        continue;
                     }
-                    if (checkDestNodes)
-                    {
-                        checkNodeIfPathExists(rptDestTree.Nodes, line);
+                    switch (stage)
+                    { 
+                        case 1:
+                            checkNodeIfPathExists(rptSourceTree.Nodes, line);
+                            break;
+                        case 2:
+                            checkNodeIfPathExists(rptDestTree.Nodes, line);
+                            break;
+                        case 3:
+                            var entryParts = line.Split('=');
+                            if (entryParts.Length == 2 && destDS.ContainsKey(entryParts[0]))
+                                destDS[entryParts[0]] = entryParts[1];
+                            break;
                     }
                 }
             }
@@ -659,6 +667,12 @@ namespace ReportSync
                 data += saveCheckedNodes(rptSourceTree.Nodes);
                 data += DEST_SELECTION_START + Environment.NewLine;
                 data += saveCheckedNodes(rptDestTree.Nodes);
+                data += MAPPING_START + Environment.NewLine;
+                //save mapping
+                foreach (var entry in destDS)
+                {
+                    data += entry.Key + "=" + entry.Value + Environment.NewLine;
+                }
                 File.WriteAllText(pathOnDisk, data);
             }
             else
