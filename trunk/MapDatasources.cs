@@ -59,5 +59,18 @@ namespace ReportSync
             }
             DialogResult = DialogResult.OK;
         }
+
+        private void dataSourcesGrid_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            int i = 0;
+            foreach (var entry in sourceDS)
+            {
+                if (destDS.ContainsKey(entry.Key))
+                {
+                    dataSourcesGrid["Destination", i].Value = destDS[entry.Key];
+                }
+                i++;
+            }
+        }
     }
 }
